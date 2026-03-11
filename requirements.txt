@@ -1,0 +1,5 @@
+streamlit
+clickhouse-driver
+plotly
+pandas
+python-dotenv
