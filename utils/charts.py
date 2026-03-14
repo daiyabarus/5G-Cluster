@@ -1,7 +1,6 @@
 """
 utils/charts.py
-Reusable Plotly chart factory functions.
-Open/Closed: add new chart types without modifying existing ones.
+Reusable Plotly chart factory functions for white background theme.
 """
 
 from __future__ import annotations
@@ -13,28 +12,27 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 
-# ── Color palette ─────────────────────────────────────────────────────────────
-COLOR_5G = "#00B4D8"
-COLOR_4G = "#FF6B35"
-COLOR_THRESHOLD = "#FF2D2D"
-COLOR_PRE = "#7B2D8B"
-COLOR_POST = "#00B4D8"
-COLOR_GRID = "rgba(255,255,255,0.08)"
+# ── Modern color palette for white background ─────────────────────────────────
+COLOR_5G = "#3B82F6"  # Blue
+COLOR_4G = "#F97316"  # Orange
+COLOR_THRESHOLD = "#EF4444"  # Bright Red - explicit
+COLOR_PRE = "#8B5CF6"  # Purple
+COLOR_POST = "#3B82F6"  # Blue
 
-# Slate-dark palette — matches CSS theme
-_BG_PAPER = "#0F1523"  # app base
-_BG_PLOT = "#161D2F"  # chart canvas (slightly lighter)
-_TEXT = "#E2E8F0"  # primary text
-_TEXT_MUTED = "#94A3B8"  # axis labels / legend
-_GRID = "rgba(255,255,255,0.055)"
-_BORDER = "#2D3A55"
+# Clean white theme colors
+_BG_PAPER = "#FFFFFF"  # Pure white background
+_BG_PLOT = "#F8FAFC"  # Slightly off-white for plot area
+_TEXT = "#0F172A"  # Dark slate for text
+_TEXT_MUTED = "#64748B"  # Muted text for labels
+_GRID = "rgba(226, 232, 240, 0.6)"  # Light gray grid lines
+_BORDER = "#E2E8F0"  # Border color
 
 LAYOUT_DEFAULTS = dict(
-    template="plotly_dark",
+    template="plotly_white",
     paper_bgcolor=_BG_PAPER,
     plot_bgcolor=_BG_PLOT,
     font=dict(family="Inter, sans-serif", size=12, color=_TEXT),
-    title_font=dict(color=_TEXT, size=14, family="Inter, sans-serif"),
+    title_font=dict(color=_TEXT, size=14, family="Inter, sans-serif", weight=600),
     legend=dict(
         orientation="h",
         yanchor="bottom",
@@ -42,30 +40,17 @@ LAYOUT_DEFAULTS = dict(
         xanchor="right",
         x=1,
         font=dict(color=_TEXT, size=11),
-        bgcolor="rgba(22,29,47,0.85)",
+        bgcolor="rgba(255,255,255,0.9)",
         bordercolor=_BORDER,
         borderwidth=1,
+        itemsizing="constant",
     ),
-    margin=dict(l=48, r=24, t=52, b=36),
-    xaxis=dict(
-        gridcolor=_GRID,
-        showgrid=True,
-        zeroline=False,
-        color=_TEXT_MUTED,
-        tickfont=dict(color=_TEXT_MUTED, size=11),
-        title_font=dict(color=_TEXT_MUTED, size=11),
-        linecolor=_BORDER,
-        linewidth=1,
-    ),
-    yaxis=dict(
-        gridcolor=_GRID,
-        showgrid=True,
-        zeroline=False,
-        color=_TEXT_MUTED,
-        tickfont=dict(color=_TEXT_MUTED, size=11),
-        title_font=dict(color=_TEXT_MUTED, size=11),
-        linecolor=_BORDER,
-        linewidth=1,
+    margin=dict(l=48, r=24, t=64, b=48),
+    hoverlabel=dict(
+        bgcolor="white",
+        font_size=12,
+        font_family="Inter, sans-serif",
+        bordercolor=_BORDER,
     ),
 )
 
@@ -73,7 +58,32 @@ LAYOUT_DEFAULTS = dict(
 def _apply_layout(fig: go.Figure, title: str, **kwargs) -> go.Figure:
     layout = {
         **LAYOUT_DEFAULTS,
-        "title": dict(text=title, font=dict(size=16)),
+        "title": dict(
+            text=f"<b>{title}</b>",
+            font=dict(size=16, color=_TEXT),
+            x=0,
+            xanchor="left",
+        ),
+        "xaxis": dict(
+            gridcolor=_GRID,
+            showgrid=True,
+            zeroline=False,
+            color=_TEXT_MUTED,
+            tickfont=dict(color=_TEXT_MUTED, size=11),
+            title_font=dict(color=_TEXT_MUTED, size=11, weight=500),
+            linecolor=_BORDER,
+            linewidth=1,
+        ),
+        "yaxis": dict(
+            gridcolor=_GRID,
+            showgrid=True,
+            zeroline=False,
+            color=_TEXT_MUTED,
+            tickfont=dict(color=_TEXT_MUTED, size=11),
+            title_font=dict(color=_TEXT_MUTED, size=11, weight=500),
+            linecolor=_BORDER,
+            linewidth=1,
+        ),
         **kwargs,
     }
     fig.update_layout(**layout)
@@ -99,8 +109,9 @@ def build_traffic_chart(
                 name="4G Traffic (GB)",
                 mode="lines",
                 fill="tozeroy",
-                line=dict(color=COLOR_4G, width=2),
-                fillcolor="rgba(255,107,53,0.25)",
+                line=dict(color=COLOR_4G, width=2.5),
+                fillcolor=f"rgba(249, 115, 22, 0.15)",  # Orange with opacity
+                hovertemplate="<b>%{x}</b><br>4G Traffic: %{y:,.2f} GB<extra></extra>",
             )
         )
 
@@ -112,13 +123,17 @@ def build_traffic_chart(
                 name="5G Traffic (GB)",
                 mode="lines",
                 fill="tozeroy",
-                line=dict(color=COLOR_5G, width=2),
-                fillcolor="rgba(0,180,216,0.25)",
+                line=dict(color=COLOR_5G, width=2.5),
+                fillcolor=f"rgba(59, 130, 246, 0.15)",  # Blue with opacity
+                hovertemplate="<b>%{x}</b><br>5G Traffic: %{y:,.2f} GB<extra></extra>",
             )
         )
 
     return _apply_layout(
-        fig, "📶 Daily Traffic (GB) — 4G vs 5G", yaxis_title="Traffic (GB)"
+        fig, 
+        "📊 Daily Traffic (GB) — 4G vs 5G", 
+        yaxis_title="Traffic (GB)",
+        hovermode="x unified",
     )
 
 
@@ -141,8 +156,9 @@ def build_user_chart(
                 name="LTE Avg Users",
                 mode="lines",
                 fill="tozeroy",
-                line=dict(color=COLOR_4G, width=2),
-                fillcolor="rgba(255,107,53,0.25)",
+                line=dict(color=COLOR_4G, width=2.5),
+                fillcolor=f"rgba(249, 115, 22, 0.15)",  # Orange with opacity
+                hovertemplate="<b>%{x}</b><br>4G Users: %{y:,.0f}<extra></extra>",
             )
         )
 
@@ -154,13 +170,17 @@ def build_user_chart(
                 name="5G Avg Users",
                 mode="lines",
                 fill="tozeroy",
-                line=dict(color=COLOR_5G, width=2),
-                fillcolor="rgba(0,180,216,0.25)",
+                line=dict(color=COLOR_5G, width=2.5),
+                fillcolor=f"rgba(59, 130, 246, 0.15)",  # Blue with opacity
+                hovertemplate="<b>%{x}</b><br>5G Users: %{y:,.0f}<extra></extra>",
             )
         )
 
     return _apply_layout(
-        fig, "👥 Daily Active Users — 4G vs 5G", yaxis_title="Avg Users"
+        fig, 
+        "👥 Daily Active Users — 4G vs 5G", 
+        yaxis_title="Avg Users",
+        hovermode="x unified",
     )
 
 
@@ -188,24 +208,52 @@ def build_kpi_line_chart(
                 y=df_daily["kpi_value"],
                 name=kpi_name,
                 mode="lines+markers",
-                line=dict(color=color, width=2),
-                marker=dict(size=5),
-                hovertemplate="%{x}<br><b>%{y:.4f}</b><extra></extra>",
+                line=dict(color=color, width=4),
+                marker=dict(size=6, color=color, line=dict(color="white", width=1)),
+                hovertemplate="<b>%{x}</b><br>%{y:.4f}<extra></extra>",
             )
         )
 
     if threshold is not None:
+        # Force red color with explicit RGBA
         fig.add_hline(
             y=threshold,
             line_dash="dash",
-            line_color=COLOR_THRESHOLD,
-            annotation_text=f"Target: {threshold}",
-            annotation_position="top right",
-            annotation_font_color=COLOR_THRESHOLD,
+            line_color="#EF4444",  # Explicit red hex
+            line_width=2.5,
+            opacity=1.0,
+            # annotation_text=f"<b>Target: {threshold}</b>",
+            # annotation_position="top right",
+            # annotation_font=dict(
+            #     color="#EF4444",  # Explicit red
+            #     size=11,
+            #     family="Inter, sans-serif",
+            #     weight="bold"
+            # ),
+            # annotation_bgcolor="rgba(255, 255, 255, 0.95)",
+            # annotation_bordercolor="#EF4444",  # Red border
+            # annotation_borderwidth=1,
         )
 
     y_title = f"{kpi_name} ({unit})" if unit else kpi_name
-    return _apply_layout(fig, kpi_name, yaxis_title=y_title, height=320)
+    
+    # Apply layout
+    fig = _apply_layout(fig, kpi_name, yaxis_title=y_title, height=320)
+    
+    # Post-processing: ensure threshold line is red
+    if threshold is not None:
+        # Update any shapes that might be threshold lines
+        for shape in fig.layout.shapes:
+            if hasattr(shape, 'line') and shape.line.dash == "dash":
+                shape.line.color = "#EF4444"
+        
+        # Update annotations
+        for annotation in fig.layout.annotations:
+            if "Target:" in annotation.text:
+                annotation.font.color = "#EF4444"
+                annotation.bordercolor = "#EF4444"
+    
+    return fig
 
 
 # ── Multi-KPI grid (for 5G/4G KPI sections) ──────────────────────────────────
@@ -216,7 +264,7 @@ def build_kpi_grid(
     kpi_meta_map: dict,
     n_cols: int = 2,
     color: str = COLOR_5G,
-) -> list[go.Figure]:
+) -> list[tuple[str, go.Figure]]:
     """
     Returns list of (kpi_name, figure) tuples — long charts, no PRE/POST bands.
     Caller renders them in a Streamlit column grid.
@@ -242,29 +290,28 @@ def add_baseline_bands(fig: go.Figure, pre_window: tuple, post_window: tuple) ->
     """
     Optionally overlay PRE/POST shaded bands on a figure.
     Called explicitly by summary-table context — NOT used by standard KPI charts.
-    Charts are long/full-range with no PRE/POST bands.
     """
     if pre_window:
         fig.add_vrect(
             x0=str(pre_window[0]),
             x1=str(pre_window[1]),
-            fillcolor="rgba(123,45,139,0.12)",
+            fillcolor="rgba(139, 92, 246, 0.08)",
             layer="below",
             line_width=0,
-            annotation_text="PRE",
+            annotation_text="<b>PRE</b>",
             annotation_position="top left",
-            annotation_font_color="#C678DD",
+            annotation_font=dict(color="#8B5CF6", size=11),
         )
     if post_window:
         fig.add_vrect(
             x0=str(post_window[0]),
             x1=str(post_window[1]),
-            fillcolor="rgba(0,180,216,0.12)",
+            fillcolor="rgba(59, 130, 246, 0.08)",
             layer="below",
             line_width=0,
-            annotation_text="POST",
+            annotation_text="<b>POST</b>",
             annotation_position="top right",
-            annotation_font_color=COLOR_5G,
+            annotation_font=dict(color=COLOR_5G, size=11),
         )
 
 
@@ -272,29 +319,48 @@ def add_baseline_bands(fig: go.Figure, pre_window: tuple, post_window: tuple) ->
 
 
 def style_summary_table(df: pd.DataFrame) -> pd.io.formats.style.Styler:
-    """Apply color coding to the summary/contributor table."""
+    """Apply color coding to the summary/contributor table with modern styling."""
 
     def color_status(val: str) -> str:
         if "Degrade" in str(val):
-            return "background-color: rgba(255,45,45,0.25); color: #FF6B6B"
+            return "background-color: #FEF2F2; color: #DC2626; font-weight: 500;"
         if "Improve" in str(val):
-            return "background-color: rgba(0,200,100,0.2); color: #00C878"
-        return "background-color: rgba(255,200,0,0.15); color: #FFD700"
+            return "background-color: #F0FDF4; color: #16A34A; font-weight: 500;"
+        return "background-color: #FFFBEB; color: #D97706; font-weight: 500;"
 
     def color_delta(val) -> str:
         try:
             v = float(val)
             if v < -5:
-                return "color: #FF6B6B"
+                return "color: #DC2626; font-weight: 600;"
             if v > 5:
-                return "color: #00C878"
+                return "color: #16A34A; font-weight: 600;"
         except (TypeError, ValueError):
             pass
-        return "color: #FAFAFA"
+        return "color: #64748B;"
 
-    styler = df.style
+    styler = df.style.set_table_styles([
+        {'selector': 'thead th', 
+         'props': [('background-color', '#F8FAFC'), 
+                   ('color', '#0F172A'),
+                   ('font-weight', '600'),
+                   ('font-size', '0.85rem'),
+                   ('padding', '0.75rem'),
+                   ('border-bottom', '2px solid #E2E8F0')]},
+        {'selector': 'tbody td', 
+         'props': [('padding', '0.75rem'),
+                   ('border-bottom', '1px solid #F1F5F9')]},
+        {'selector': 'tbody tr:hover', 
+         'props': [('background-color', '#F8FAFC')]},
+    ])
+    
     if "STATUS" in df.columns:
-        styler = styler.applymap(color_status, subset=["STATUS"])
+        styler = styler.map(color_status, subset=["STATUS"])
     if "DELTA (%)" in df.columns:
-        styler = styler.applymap(color_delta, subset=["DELTA (%)"])
-    return styler
+        styler = styler.map(color_delta, subset=["DELTA (%)"])
+    
+    return styler.format({
+        "PRE": "{:.2f}",
+        "POST": "{:.2f}",
+        "DELTA (%)": "{:+.2f}%",
+    })

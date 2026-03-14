@@ -121,29 +121,7 @@ def fetch_5g_kpi_day(
         return pd.DataFrame()
     ids_str = _format_list(nrbts_ids)
     sql = f"""
-        SELECT
-            xDate, MRBTSname, NRBTSName, NRCELName,
-            MRBTS_ID, NRBTS_ID, NRCEL_ID,
-            -- Availability
-            NR_5150A_5G_CELL_AVAILABILITY_RATIO_NUM,
-            NR_5150A_5G_CELL_AVAILABILITY_RATIO_DENUM,
-            -- SgNB Addition Preparation SR
-            NR_5004B_5G_SGNB_ADDITION_PREPARATION_SUCCESS_RATIO_NUM,
-            NR_5004B_5G_SGNB_ADDITION_PREPARATION_SUCCESS_RATIO_DENUM,
-            -- SCG Abnormal Release
-            NR_5026A_5G_NSA_RATIO_OF_UE_RELEASES_DUE_TO_ABNORMAL_REASONS_NUM,
-            NR_5026A_5G_NSA_RATIO_OF_UE_RELEASES_DUE_TO_ABNORMAL_REASONS_DENUM,
-            -- Intra-PSCell Change SR (intra-DU)
-            NR_5049B_5G_INTRA_FREQUENCY_INTRA_DU_PSCELL_CHANGE_TOTAL_SUCCESS_RATIO_NUM,
-            NR_5049B_5G_INTRA_FREQUENCY_INTRA_DU_PSCELL_CHANGE_TOTAL_SUCCESS_RATIO_DENUM,
-            -- Inter-PSCell Change SR (inter-freq intra-DU for NSA)
-            NR_5187B_5G_INTER_FREQUENCY_INTRA_DU_HANDOVER_TOTAL_SUCCESS_RATIO_FOR_NSA_NUM,
-            NR_5187B_5G_INTER_FREQUENCY_INTRA_DU_HANDOVER_TOTAL_SUCCESS_RATIO_FOR_NSA_DENUM,
-            -- 5G NSA User (for user chart)
-            NR_5124A_5G_AVERAGE_NUMBER_OF_NSA_USERS_NUM,
-            NR_5124A_5G_AVERAGE_NUMBER_OF_NSA_USERS_DENUM,
-            NR_5124A_5G_AVERAGE_NUMBER_OF_NSA_USERS,
-            NR_5125A_5G_MAXIMUM_NUMBER_OF_NSA_USERS
+        SELECT *
         FROM isat_kpi.`5G_KPI_CELL_NUM_DENUM_DAY`
         WHERE xDate BETWEEN '{start_date}' AND '{end_date}'
           AND NRBTS_ID IN {ids_str}
@@ -183,40 +161,7 @@ def fetch_4g_kpi(
         return pd.DataFrame()
     ids_str = _format_list(mrbts_ids)
     sql = f"""
-        SELECT
-            xDate, MRBTS_ID, LNBTS_ID, LNCEL_ID, oss,
-            -- Availability
-            CELL_AVAILIBILITY_NUM, CELL_AVAILIBILITY_DENUM,
-            -- Access
-            RRC_SR_NUM, RRC_SR_DENUM,
-            ERAB_SR_NUM, ERAB_SR_DENUM,
-            CSFB_PREP_SR_NUM, CSFB_PREP_SR_DENUM,
-            CSSR_S1_CONN_NUM, CSSR_S1_CONN_DENUM,
-            CSSR_VOLTE_NUM, CSSR_VOLTE_DENUM,
-            -- Retainability
-            DROP_PS_NUM, DROP_PS_DENUM,
-            DROP_VOLTE_NUM, DROP_VOLTE_DENUM,
-            -- Mobility
-            HOSR_INTRA_FREQ_NUM, HOSR_INTRA_FREQ_DENUM,
-            HOSR_INTER_FREQ_NUM, HOSR_INTER_FREQ_DENUM,
-            HOSR_VOLTE_NUM, HOSR_VOLTE_DENUM,
-            -- Radio quality
-            CQI_NUM, CQI_DENUM,
-            RBLER_DL_NUM, RBLER_DL_DENUM,
-            EUT_NUM, EUT_DENUM,
-            RANK2_NUM, RANK2_DENUM,
-            RSSI_PUCCH_NUM, RSSI_PUCCH_DENUM,
-            QPSK_RATIO_NUM, QPSK_RATIO_DENUM,
-            LAST_TTI_NUM, LAST_TTI_DENUM,
-            -- Throughput
-            DL_USER_THROUGHPUT_NUM, DL_USER_THROUGHPUT_DENUM,
-            UL_USER_THROUGHPUT_NUM, UL_USER_THROUGHPUT_DENUM,
-            DL_CELL_THROUGHPUT, UL_CELL_THROUGHPUT,
-            DL_PRB_UTILIZATION_NUM, DL_PRB_UTILIZATION_DENUM,
-            -- Volume & users
-            DATA_TRAFFIC_GB, DATA_DL_TRAFFIC_GB, DATA_UL_TRAFFIC_GB,
-            ACTIVE_USER_NUM, ACTIVE_USER_DENUM,
-            RRC_CONNECTED_USER
+        SELECT *
         FROM isat_kpi.`4G_KPI_NUM_DENUM_DAY`
         WHERE xDate BETWEEN '{start_date}' AND '{end_date}'
           AND MRBTS_ID IN {ids_str}

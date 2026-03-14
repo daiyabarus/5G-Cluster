@@ -1,84 +1,77 @@
 """
 config/kpi_config.py
 Centralised KPI definitions, thresholds, and direction flags.
-Easy to extend: add a new KPI dict entry — no code changes elsewhere.
-"""
 
+KEY CHANGE: formula_num and formula_denum now support LISTS of column names.
+When a list is provided, the processor sums all listed columns before computing
+the ratio. This handles KPIs like UL Interference that require adding counters
+from multiple sources (PUCCH + PUSCH) before dividing.
+
+Example:
+    UL Interference  = (PUCCH_NUM + PUSCH_NUM) / (PUCCH_DENUM + PUSCH_DENUM)
+    DL Spectrum Eff  = (SE_NUM + SE_DENUM_X) / (SE_DENUM + SE_DENUMX_DIV)
+
+Processor logic handles both str and list[str] transparently.
+"""
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, Union
 
 
 @dataclass(frozen=True)
 class KPIDefinition:
     name: str
-    formula_num: str  # column name numerator
-    formula_denum: str  # column name denominator
+    # Accept either a single column name OR a list of columns to be summed
+    formula_num: Union[str, list[str]]
+    formula_denum: Union[str, list[str]]
     unit: str = "%"
     threshold: Optional[float] = None
-    # False = lower is better (drop rate, BLER, etc.)
     higher_is_better: bool = True
-    # multiply ratio before display (1.0 for raw values)
     multiply: float = 100.0
-    source: str = "pa13"  # 'pa13' | 'day' | '4g'
+    source: str = "pa13"  # "pa13" | "day" | "4g"
 
 
 # ── 5G KPI Definitions ────────────────────────────────────────────────────────
-# Source mapping (confirmed):
-#   source="day"  → isat_kpi.5G_KPI_CELL_NUM_DENUM_DAY
-#   source="pa13" → isat_kpi.5G_KPI_CELL_NUM_DENUM_DAY_PA13
-# ─────────────────────────────────────────────────────────────────────────────
 KPI_5G: list[KPIDefinition] = [
-    # ── FROM DAY TABLE ────────────────────────────────────────────────────────
+    # ── FROM PA13 TABLE ──────────────────────────────────────────────────────
     KPIDefinition(
         name="Availability",
-        formula_num="NR_5150A_5G_CELL_AVAILABILITY_RATIO_NUM",
-        formula_denum="NR_5150A_5G_CELL_AVAILABILITY_RATIO_DENUM",
-        threshold=None,
+        formula_num="5G_CELL_AVAILABILITY_SYSTEM_NUM",
+        formula_denum="5G_CELL_AVAILABILITY_SYSTEM_DENUM",
+        threshold=99.0,
         higher_is_better=True,
-        source="day",
+        source="pa13",
     ),
     KPIDefinition(
-        name="SgNB Addition Success Rate",
-        formula_num="NR_5004B_5G_SGNB_ADDITION_PREPARATION_SUCCESS_RATIO_NUM",
-        formula_denum="NR_5004B_5G_SGNB_ADDITION_PREPARATION_SUCCESS_RATIO_DENUM",
-        threshold=97.5,
+        name="Accessibility",
+        formula_num="5G_CELL_ACCESSIBILITY_NUM",
+        formula_denum="5G_CELL_ACCESSIBILITY_DENUM",
+        threshold=99.0,
         higher_is_better=True,
-        source="day",
+        source="pa13",
     ),
     KPIDefinition(
         name="SCG Abnormal Release Rate",
-        formula_num="NR_5026A_5G_NSA_RATIO_OF_UE_RELEASES_DUE_TO_ABNORMAL_REASONS_NUM",
-        formula_denum="NR_5026A_5G_NSA_RATIO_OF_UE_RELEASES_DUE_TO_ABNORMAL_REASONS_DENUM",
+        formula_num="5G_CALL_DROP_RATE_NUM",
+        formula_denum="5G_CALL_DROP_RATE_DENUM",
         threshold=0.5,
         higher_is_better=False,
-        source="day",
+        source="pa13",
     ),
     KPIDefinition(
         name="Intra-PSCell Change SR",
-        formula_num="NR_5049B_5G_INTRA_FREQUENCY_INTRA_DU_PSCELL_CHANGE_TOTAL_SUCCESS_RATIO_NUM",
-        formula_denum="NR_5049B_5G_INTRA_FREQUENCY_INTRA_DU_PSCELL_CHANGE_TOTAL_SUCCESS_RATIO_DENUM",
+        formula_num="5G_INTRA_ESGNB_PSCELL_CHANGE_NUM",
+        formula_denum="5G_INTRA_ESGNB_PSCELL_CHANGE_DENUM",
         threshold=98.0,
         higher_is_better=True,
-        source="day",
+        source="pa13",
     ),
     KPIDefinition(
         name="Inter-PSCell Change SR",
-        formula_num="NR_5187B_5G_INTER_FREQUENCY_INTRA_DU_HANDOVER_TOTAL_SUCCESS_RATIO_FOR_NSA_NUM",
-        formula_denum="NR_5187B_5G_INTER_FREQUENCY_INTRA_DU_HANDOVER_TOTAL_SUCCESS_RATIO_FOR_NSA_DENUM",
+        formula_num="5G_INTER_ESGNB_PSCELL_CHANGE_NUM",
+        formula_denum="5G_INTER_ESGNB_PSCELL_CHANGE_DENUM",
         threshold=97.0,
         higher_is_better=True,
-        source="day",
-    ),
-    # ── FROM PA13 TABLE ───────────────────────────────────────────────────────
-    KPIDefinition(
-        name="Average CQI",
-        formula_num="5G_AVG_CQI_NUM",
-        formula_denum="5G_AVG_CQI_DENUM",
-        threshold=8.5,
-        higher_is_better=True,
-        unit="",
-        multiply=1.0,
         source="pa13",
     ),
     KPIDefinition(
@@ -88,6 +81,7 @@ KPI_5G: list[KPIDefinition] = [
         threshold=0.2,
         higher_is_better=False,
         source="pa13",
+        multiply=1.0,
     ),
     KPIDefinition(
         name="UL BLER",
@@ -96,6 +90,7 @@ KPI_5G: list[KPIDefinition] = [
         threshold=0.4,
         higher_is_better=False,
         source="pa13",
+        multiply=1.0,
     ),
     KPIDefinition(
         name="Rank 2 Share",
@@ -106,14 +101,57 @@ KPI_5G: list[KPIDefinition] = [
         source="pa13",
     ),
     KPIDefinition(
+        name="Rank 4 Share",
+        formula_num="MIMO_RANK_4_SHARE_NUM",
+        formula_denum="MIMO_RANK_4_SHARE_DENUM",
+        threshold=None,
+        higher_is_better=True,
+        source="pa13",
+    ),
+    # ── MULTI-COUNTER KPI: UL Interference ────────────────────────────────
+    # Formula: (PUCCH_NUM + PUSCH_NUM) / (PUCCH_DENUM + PUSCH_DENUM)
+    # Both numerator columns are summed BEFORE the division.
+    # This is the correct way to combine counters from two sources.
+    KPIDefinition(
         name="UL Interference",
-        formula_num="CELL_AVG_UL_RIP_SCHED_ALL_PRB_NUM",
-        formula_denum="CELL_AVG_UL_RIP_SCHED_ALL_PRB_DENUM",
+        formula_num=["5G_UL_INTERFERENCE_PUCCH_NUM", "5G_UL_INTERFERENCE_PUSCH_NUM"],
+        formula_denum=["5G_UL_INTERFERENCE_PUCCH_DENUM", "5G_UL_INTERFERENCE_PUSCH_DENUM"],
         threshold=-110.0,
         higher_is_better=False,
         unit="dBm",
         multiply=1.0,
         source="pa13",
+    ),
+    KPIDefinition(
+        name="QPSK Ratio",
+        formula_num="5G_QPSK_RATIO_NUM",
+        formula_denum="5G_QPSK_RATIO_DENUM",
+        threshold=None,
+        higher_is_better=False,
+        source="pa13",
+    ),
+    KPIDefinition(
+        name="DL Latency",
+        formula_num="5G_DL_LATENCY_IN_GNB_NUM",
+        formula_denum="5G_DL_LATENCY_IN_GNB_DENUM",
+        threshold=None,
+        higher_is_better=False,
+        unit="ms",
+        source="pa13",
+    ),
+    # ── MULTI-COUNTER KPI: DL Spectrum Efficiency ─────────────────────────
+    # Formula: (SE_NUM + SE_DENUM_X) / (SE_DENUM + SE_DENUMX_DIV)
+    # The column naming is unconventional (DENUM_X in numerator) but
+    # reflects how Nokia stores these counters — sum both before dividing.
+    KPIDefinition(
+        name="DL Spectrum Efficiency",
+        formula_num=["5G_DL_SPECTRUM_EFFICIENCY_NUM", "5G_DL_SPECTRUM_EFFICIENCY_DENUM_X"],
+        formula_denum=["5G_DL_SPECTRUM_EFFICIENCY_DENUM", "5G_DL_SPECTRUM_EFFICIENCY_DENUMX_DIV"],
+        threshold=None,
+        higher_is_better=True,
+        unit="bps/Hz",
+        source="pa13",
+        multiply=1.0,
     ),
     KPIDefinition(
         name="DL User Throughput",
@@ -122,7 +160,7 @@ KPI_5G: list[KPIDefinition] = [
         threshold=None,
         higher_is_better=True,
         unit="Mbps",
-        multiply=0.000001,
+        multiply=1.0,
         source="pa13",
     ),
     KPIDefinition(
@@ -132,7 +170,7 @@ KPI_5G: list[KPIDefinition] = [
         threshold=None,
         higher_is_better=True,
         unit="Mbps",
-        multiply=0.000001,
+        multiply=1.0,
         source="pa13",
     ),
     KPIDefinition(
@@ -142,7 +180,7 @@ KPI_5G: list[KPIDefinition] = [
         threshold=None,
         higher_is_better=True,
         unit="Mbps",
-        multiply=0.000001,
+        multiply=1.0,
         source="pa13",
     ),
     KPIDefinition(
@@ -152,66 +190,87 @@ KPI_5G: list[KPIDefinition] = [
         threshold=None,
         higher_is_better=True,
         unit="Mbps",
-        multiply=0.000001,
+        multiply=1.0,
         source="pa13",
     ),
     KPIDefinition(
-        name="RB Utilization DL",
+        name="DL PRB Utilization",
         formula_num="5G_DL_PRB_UTILIZATION_NUM",
         formula_denum="5G_DL_PRB_UTILIZATION_DENUM",
-        threshold=None,
-        higher_is_better=True,
-        source="pa13",
-    ),
-    KPIDefinition(
-        name="Ping-Pong Ratio",
-        formula_num="PIMGPONG_RATIO_NUM",
-        formula_denum="PIMGPONG_RATIO_DENUM",
         threshold=None,
         higher_is_better=False,
         source="pa13",
     ),
     KPIDefinition(
-        name="RRC Connected User",
-        formula_num="SUM_AVE_RRC_USER",
-        formula_denum="NUMBER_HOUR",
+        name="UL PRB Utilization",
+        formula_num="5G_UL_PRB_UTILIZATION_NUM",
+        formula_denum="5G_UL_PRB_UTILIZATION_DENUM",
+        threshold=None,
+        higher_is_better=False,
+        source="pa13",
+    ),
+    KPIDefinition(
+        name="Avg EN-DC User",
+        formula_num="5G_AVG_EN_DC_USER_NUM",
+        formula_denum="5G_AVG_EN_DC_USER_DENUM",
         threshold=None,
         higher_is_better=True,
         unit="",
-        multiply=1.0,
         source="pa13",
+        multiply=1.0,
+    ),
+    # ── FROM DAY TABLE ────────────────────────────────────────────────────
+    KPIDefinition(
+        name="Average CQI",
+        formula_num="AVG_WB_CQI_256QAM_NUM",
+        formula_denum="AVG_WB_CQI_256QAM_DENUM",
+        threshold=8.5,
+        higher_is_better=True,
+        unit="",
+        multiply=1.0,
+        source="day",
+    ),
+    KPIDefinition(
+        name="SgNB Addition Success Rate",
+        formula_num="NR_5005A_5G_SGNB_RECONFIGURATION_SUCCESS_RATIO_NUM",
+        formula_denum="NR_5005A_5G_SGNB_RECONFIGURATION_SUCCESS_RATIO_DENUM",
+        threshold=97.5,
+        higher_is_better=True,
+        source="day",
+    ),
+    KPIDefinition(
+        name="5G Cell Accessibility",
+        formula_num="NR_5004B_5G_SGNB_ADDITION_PREPARATION_SUCCESS_RATIO_NUM",
+        formula_denum="NR_5004B_5G_SGNB_ADDITION_PREPARATION_SUCCESS_RATIO_DENUM",
+        threshold=99.0,
+        higher_is_better=True,
+        source="day",
     ),
 ]
 
-# ── 5G Traffic KPI (from both pa13 tables) ───────────────────────────────────
+# ── 5G Traffic KPI ────────────────────────────────────────────────────────────
 KPI_5G_TRAFFIC = {
     "dl_col": "5G_DL_TRAFFIC_VOLUME_GB",
     "ul_col": "5G_UL_TRAFFIC_VOLUME_GB",
     "source": "pa13",
 }
 
-# ── 5G User KPI (from PA13 table — SUM_AVE_RRC_USER / NUMBER_HOUR) ───────────
-# NOTE: PA13 does not have dedicated NSA user num/denum columns in most schemas.
-# Using SUM_AVE_RRC_USER / NUMBER_HOUR as proxy for connected user average.
+# ── 5G User KPI ───────────────────────────────────────────────────────────────
 KPI_5G_USER = {
-    "num": "SUM_AVE_RRC_USER",
-    "denum": "NUMBER_HOUR",
-    "source": "pa13",
+    "col": "NR_5124A_5G_AVERAGE_NUMBER_OF_NSA_USERS",
+    "source": "day",
 }
 
-# ── 4G KPI Definitions — exact columns from isat_kpi.4G_KPI_NUM_DENUM_DAY ───
-# Column reference confirmed from provided schema header.
+# ── 4G KPI Definitions ────────────────────────────────────────────────────────
 KPI_4G: list[KPIDefinition] = [
-    # ── Availability ──────────────────────────────────────────────────────────
     KPIDefinition(
         name="Availability",
-        formula_num="CELL_AVAILIBILITY_NUM",  # exact spelling in schema
+        formula_num="CELL_AVAILIBILITY_NUM",
         formula_denum="CELL_AVAILIBILITY_DENUM",
         threshold=None,
         higher_is_better=True,
         source="4g",
     ),
-    # ── Access KPIs ──────────────────────────────────────────────────────────
     KPIDefinition(
         name="RRC Connection Setup SR",
         formula_num="RRC_SR_NUM",
@@ -252,7 +311,6 @@ KPI_4G: list[KPIDefinition] = [
         higher_is_better=True,
         source="4g",
     ),
-    # ── Retainability ─────────────────────────────────────────────────────────
     KPIDefinition(
         name="eRAB Drop Rate",
         formula_num="DROP_PS_NUM",
@@ -269,7 +327,6 @@ KPI_4G: list[KPIDefinition] = [
         higher_is_better=False,
         source="4g",
     ),
-    # ── Mobility ──────────────────────────────────────────────────────────────
     KPIDefinition(
         name="Intra-Freq HO SR",
         formula_num="HOSR_INTRA_FREQ_NUM",
@@ -294,7 +351,6 @@ KPI_4G: list[KPIDefinition] = [
         higher_is_better=True,
         source="4g",
     ),
-    # ── Radio Quality ─────────────────────────────────────────────────────────
     KPIDefinition(
         name="Average CQI",
         formula_num="CQI_NUM",
@@ -332,7 +388,7 @@ KPI_4G: list[KPIDefinition] = [
         source="4g",
     ),
     KPIDefinition(
-        name="UL Interference (PUCCH)",
+        name="UL Interference",
         formula_num="RSSI_PUCCH_NUM",
         formula_denum="RSSI_PUCCH_DENUM",
         threshold=None,
@@ -349,17 +405,6 @@ KPI_4G: list[KPIDefinition] = [
         higher_is_better=False,
         source="4g",
     ),
-    KPIDefinition(
-        name="Last TTI",
-        formula_num="LAST_TTI_NUM",
-        formula_denum="LAST_TTI_DENUM",
-        threshold=None,
-        higher_is_better=True,
-        unit="",
-        multiply=1.0,
-        source="4g",
-    ),
-    # ── Throughput ────────────────────────────────────────────────────────────
     KPIDefinition(
         name="DL User Throughput",
         formula_num="DL_USER_THROUGHPUT_NUM",
@@ -382,9 +427,8 @@ KPI_4G: list[KPIDefinition] = [
     ),
     KPIDefinition(
         name="DL Cell Throughput",
-        # direct value column (not num/denum)
         formula_num="DL_CELL_THROUGHPUT",
-        formula_denum=None,
+        formula_denum="",
         threshold=None,
         higher_is_better=True,
         unit="Mbps",
@@ -393,19 +437,18 @@ KPI_4G: list[KPIDefinition] = [
     ),
     KPIDefinition(
         name="UL Cell Throughput",
-        formula_num="UL_CELL_THROUGHPUT",  # direct value column
-        formula_denum=None,
+        formula_num="UL_CELL_THROUGHPUT",
+        formula_denum="",
         threshold=None,
         higher_is_better=True,
         unit="Mbps",
         multiply=0.000001,
         source="4g",
     ),
-    # ── Volume & Users ────────────────────────────────────────────────────────
     KPIDefinition(
         name="Traffic (GB)",
         formula_num="DATA_TRAFFIC_GB",
-        formula_denum=None,
+        formula_denum="",
         threshold=None,
         higher_is_better=True,
         unit="GB",
@@ -434,4 +477,4 @@ KPI_4G: list[KPIDefinition] = [
 
 # Status thresholds for contributor table
 DEGRADE_THRESHOLD: float = -5.0  # delta% below this = Degrade
-IMPROVE_THRESHOLD: float = 5.0  # delta% above this = Improve
+IMPROVE_THRESHOLD: float = 5.0   # delta% above this = Improve
