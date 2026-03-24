@@ -51,11 +51,20 @@ def fetch_nc5g(client: Client, region: str) -> list[str]:
     return df.iloc[:, 0].dropna().tolist()
 
 
-def fetch_site_ids(client: Client, nc5g: str) -> list[str]:
+def fetch_site_ids(client: Client, nc5g_list: list[str]) -> list[str]:
+    """
+    Fetch distinct SITE IDs for one or more NC 5G values.
+    Supports multiselect — accepts a list of NC 5G strings.
+    Uses `NC 5G` IN (...) clause for multi-value filtering.
+    """
+    if not nc5g_list:
+        return []
+    escaped = [f"'{v}'" for v in nc5g_list]
+    in_clause = f"({', '.join(escaped)})"
     sql = f"""
         SELECT DISTINCT `SITE ID`
         FROM ioh_tmp.`5G_Site_Tracker`
-        WHERE `NC 5G` = '{nc5g}'
+        WHERE `NC 5G` IN {in_clause}
         ORDER BY `SITE ID`
     """
     df = _query_to_df(client, sql)
@@ -111,12 +120,6 @@ def fetch_5g_kpi_day(
     start_date: date,
     end_date: date,
 ) -> pd.DataFrame:
-    """
-    Lean SELECT — only columns needed by DAY-sourced KPI_5G definitions:
-      Availability, SgNB Addition SR, SCG Abnormal Release,
-      Intra-PSCell SR, Inter-PSCell SR.
-    Also includes 5G user columns (NR_5124A) for the user chart.
-    """
     if not nrbts_ids:
         return pd.DataFrame()
     ids_str = _format_list(nrbts_ids)
@@ -153,10 +156,6 @@ def fetch_4g_kpi(
     start_date: date,
     end_date: date,
 ) -> pd.DataFrame:
-    """
-    Fetch only the columns required by KPI_4G definitions.
-    Avoids transferring unused columns (schema has 90+ columns).
-    """
     if not mrbts_ids:
         return pd.DataFrame()
     ids_str = _format_list(mrbts_ids)

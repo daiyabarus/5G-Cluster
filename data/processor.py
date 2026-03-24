@@ -14,6 +14,7 @@ KEY NOTES:
    build_5g_failed_contributor_table() groups directly by NRCELName (+ site_id).
    Output: Site ID | NRCELName | KPI | Threshold | Actual | Gap | Unit | STATUS
 """
+
 from __future__ import annotations
 
 import logging
@@ -95,6 +96,7 @@ def _resolve_columns_agg(
 
 # ── Enrichment ────────────────────────────────────────────────────────────────
 
+
 def enrich_5g_with_site(
     df_kpi: pd.DataFrame,
     df_5glist: pd.DataFrame,
@@ -134,6 +136,7 @@ def enrich_4g_with_site(
 
 # ── Date helpers ──────────────────────────────────────────────────────────────
 
+
 def compute_baseline_windows(
     start_date: date,
     end_date: date,
@@ -153,6 +156,7 @@ def compute_baseline_windows(
 
 
 # ── KPI Ratio Computation ─────────────────────────────────────────────────────
+
 
 def _safe_ratio(num: pd.Series, denum: pd.Series, multiply: float) -> pd.Series:
     """Compute num/denum * multiply, handling zeros safely."""
@@ -175,10 +179,16 @@ def compute_daily_kpi(
         group_keys.append(group_col)
 
     # Collect all required columns
-    num_cols = [kpi.formula_num] if isinstance(kpi.formula_num, str) else kpi.formula_num
+    num_cols = (
+        [kpi.formula_num] if isinstance(kpi.formula_num, str) else kpi.formula_num
+    )
     den_cols = []
     if kpi.formula_denum:
-        den_cols = [kpi.formula_denum] if isinstance(kpi.formula_denum, str) else kpi.formula_denum
+        den_cols = (
+            [kpi.formula_denum]
+            if isinstance(kpi.formula_denum, str)
+            else kpi.formula_denum
+        )
 
     num_cols = [c for c in num_cols if c]
     den_cols = [c for c in den_cols if c]
@@ -189,7 +199,9 @@ def compute_daily_kpi(
         logger.warning("No numerator columns found for KPI '%s'", kpi.name)
         return pd.DataFrame()
 
-    all_agg_cols = list(dict.fromkeys(available_num + [c for c in den_cols if c in df.columns]))
+    all_agg_cols = list(
+        dict.fromkeys(available_num + [c for c in den_cols if c in df.columns])
+    )
 
     agg_base = (
         df[group_keys + all_agg_cols]
@@ -199,7 +211,9 @@ def compute_daily_kpi(
     )
 
     # Build summed numerator and denominator
-    num_series = agg_base[[c for c in available_num if c in agg_base.columns]].sum(axis=1)
+    num_series = agg_base[[c for c in available_num if c in agg_base.columns]].sum(
+        axis=1
+    )
 
     available_den = [c for c in den_cols if c in agg_base.columns]
     if available_den:
@@ -250,6 +264,7 @@ def compute_cluster_kpi(
 
 
 # ── Traffic aggregation ───────────────────────────────────────────────────────
+
 
 def compute_5g_daily_traffic(
     df_pa13: pd.DataFrame, date_col: str = "xDate"
@@ -359,6 +374,7 @@ def compute_4g_daily_user(df_4g: pd.DataFrame, date_col: str = "xDate") -> pd.Da
 
 # ── Baseline / Contributor Table ──────────────────────────────────────────────
 
+
 def determine_status(
     delta: float,
     higher_is_better: bool,
@@ -433,7 +449,9 @@ def build_site_contributor_table(
     rows = []
     for kpi in kpi_list:
         # Validate columns exist
-        num_cols = [kpi.formula_num] if isinstance(kpi.formula_num, str) else kpi.formula_num
+        num_cols = (
+            [kpi.formula_num] if isinstance(kpi.formula_num, str) else kpi.formula_num
+        )
         if not any(c in df.columns for c in num_cols if c):
             continue
 
@@ -545,7 +563,8 @@ def build_5g_failed_contributor_table(
     if not has_site and not has_cell:
         logger.warning(
             "build_5g_failed_contributor_table: neither '%s' nor '%s' found in df",
-            site_col, cell_col,
+            site_col,
+            cell_col,
         )
         return pd.DataFrame()
 
@@ -575,10 +594,10 @@ def build_5g_failed_contributor_table(
 
             if kpi.higher_is_better:
                 failed = val < kpi.threshold
-                gap = val - kpi.threshold      # negative = below target
+                gap = val - kpi.threshold  # negative = below target
             else:
                 failed = val > kpi.threshold
-                gap = kpi.threshold - val      # negative = above target (bad)
+                gap = kpi.threshold - val  # negative = above target (bad)
 
             if not failed:
                 continue

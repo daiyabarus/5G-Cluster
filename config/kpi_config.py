@@ -13,6 +13,7 @@ Example:
 
 Processor logic handles both str and list[str] transparently.
 """
+
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional, Union
@@ -44,8 +45,14 @@ KPI_5G: list[KPIDefinition] = [
     ),
     KPIDefinition(
         name="Accessibility",
-        formula_num=["NR_5020D_5G_NSA_NON_STAND_ALONE_CALL_ACCESSIBILITY_5G_SIDE_NUM1", "NR_5020D_5G_NSA_NON_STAND_ALONE_CALL_ACCESSIBILIT_5G_SIDE_NUM2"],
-        formula_denum=["NR_5020D_5G_NSA_NON_STAND_ALONE_CALL_ACCESSIBILITY_5G_SIDE_DENUM1", "NR_5020D_5G_NSA_NON_STAND_ALONE_CALL_ACCESSIBILITY_5G_SIDE_DENUM2"],
+        formula_num=[
+            "NR_5020D_5G_NSA_NON_STAND_ALONE_CALL_ACCESSIBILITY_5G_SIDE_NUM1",
+            "NR_5020D_5G_NSA_NON_STAND_ALONE_CALL_ACCESSIBILIT_5G_SIDE_NUM2",
+        ],
+        formula_denum=[
+            "NR_5020D_5G_NSA_NON_STAND_ALONE_CALL_ACCESSIBILITY_5G_SIDE_DENUM1",
+            "NR_5020D_5G_NSA_NON_STAND_ALONE_CALL_ACCESSIBILITY_5G_SIDE_DENUM2",
+        ],
         threshold=99.0,
         higher_is_better=True,
         source="day",
@@ -115,7 +122,10 @@ KPI_5G: list[KPIDefinition] = [
     KPIDefinition(
         name="UL Interference",
         formula_num=["5G_UL_INTERFERENCE_PUCCH_NUM", "5G_UL_INTERFERENCE_PUSCH_NUM"],
-        formula_denum=["5G_UL_INTERFERENCE_PUCCH_DENUM", "5G_UL_INTERFERENCE_PUSCH_DENUM"],
+        formula_denum=[
+            "5G_UL_INTERFERENCE_PUCCH_DENUM",
+            "5G_UL_INTERFERENCE_PUSCH_DENUM",
+        ],
         threshold=-110.0,
         higher_is_better=False,
         unit="dBm",
@@ -140,7 +150,6 @@ KPI_5G: list[KPIDefinition] = [
         multiply=0.01,
         source="pa13",
     ),
-
     KPIDefinition(
         name="DL Spectrum Efficiency",
         formula_num="5G_DL_SPECTRUM_EFFICIENCY_NUM",
@@ -478,4 +487,4 @@ KPI_4G: list[KPIDefinition] = [
 
 # Status thresholds for contributor table
 DEGRADE_THRESHOLD: float = -5.0  # delta% below this = Degrade
-IMPROVE_THRESHOLD: float = 5.0   # delta% above this = Improve
+IMPROVE_THRESHOLD: float = 5.0  # delta% above this = Improve
