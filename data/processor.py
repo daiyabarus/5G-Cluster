@@ -32,8 +32,6 @@ from config.kpi_config import (
 logger = logging.getLogger(__name__)
 
 
-# ── Column resolution (handles str OR list[str]) ──────────────────────────────
-
 def _resolve_columns(
     formula: Union[str, list[str]],
     df: pd.DataFrame,
@@ -169,11 +167,6 @@ def compute_daily_kpi(
     date_col: str = "xDate",
     group_col: Optional[str] = None,
 ) -> pd.DataFrame:
-    """
-    Aggregate num/denum by date (and optional group), then compute ratio.
-    Handles formula_num / formula_denum as str OR list[str].
-    Returns columns: [date_col, (group_col,) kpi_value]
-    """
     if df.empty:
         return pd.DataFrame()
 

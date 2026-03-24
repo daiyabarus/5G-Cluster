@@ -38,17 +38,17 @@ KPI_5G: list[KPIDefinition] = [
         name="Availability",
         formula_num="5G_CELL_AVAILABILITY_SYSTEM_NUM",
         formula_denum="5G_CELL_AVAILABILITY_SYSTEM_DENUM",
-        threshold=99.0,
+        threshold=98.0,
         higher_is_better=True,
         source="pa13",
     ),
     KPIDefinition(
         name="Accessibility",
-        formula_num="5G_CELL_ACCESSIBILITY_NUM",
-        formula_denum="5G_CELL_ACCESSIBILITY_DENUM",
+        formula_num=["NR_5020D_5G_NSA_NON_STAND_ALONE_CALL_ACCESSIBILITY_5G_SIDE_NUM1", "NR_5020D_5G_NSA_NON_STAND_ALONE_CALL_ACCESSIBILIT_5G_SIDE_NUM2"],
+        formula_denum=["NR_5020D_5G_NSA_NON_STAND_ALONE_CALL_ACCESSIBILITY_5G_SIDE_DENUM1", "NR_5020D_5G_NSA_NON_STAND_ALONE_CALL_ACCESSIBILITY_5G_SIDE_DENUM2"],
         threshold=99.0,
         higher_is_better=True,
-        source="pa13",
+        source="day",
     ),
     KPIDefinition(
         name="SCG Abnormal Release Rate",
@@ -137,21 +137,23 @@ KPI_5G: list[KPIDefinition] = [
         threshold=None,
         higher_is_better=False,
         unit="ms",
+        multiply=0.01,
         source="pa13",
     ),
-    # ── MULTI-COUNTER KPI: DL Spectrum Efficiency ─────────────────────────
-    # Formula: (SE_NUM + SE_DENUM_X) / (SE_DENUM + SE_DENUMX_DIV)
-    # The column naming is unconventional (DENUM_X in numerator) but
-    # reflects how Nokia stores these counters — sum both before dividing.
+
     KPIDefinition(
         name="DL Spectrum Efficiency",
-        formula_num=["5G_DL_SPECTRUM_EFFICIENCY_NUM", "5G_DL_SPECTRUM_EFFICIENCY_DENUM_X"],
-        formula_denum=["5G_DL_SPECTRUM_EFFICIENCY_DENUM", "5G_DL_SPECTRUM_EFFICIENCY_DENUMX_DIV"],
+        formula_num="5G_DL_SPECTRUM_EFFICIENCY_NUM",
+        formula_denum=[
+            "5G_DL_SPECTRUM_EFFICIENCY_DENUM",
+            "5G_DL_SPECTRUM_EFFICIENCY_DENUM_X",
+            "5G_DL_SPECTRUM_EFFICIENCY_DENUMX_DIV",
+        ],
         threshold=None,
         higher_is_better=True,
         unit="bps/Hz",
         source="pa13",
-        multiply=1.0,
+        multiply=10.0,
     ),
     KPIDefinition(
         name="DL User Throughput",
@@ -160,7 +162,7 @@ KPI_5G: list[KPIDefinition] = [
         threshold=None,
         higher_is_better=True,
         unit="Mbps",
-        multiply=1.0,
+        multiply=0.001,
         source="pa13",
     ),
     KPIDefinition(
@@ -170,7 +172,7 @@ KPI_5G: list[KPIDefinition] = [
         threshold=None,
         higher_is_better=True,
         unit="Mbps",
-        multiply=1.0,
+        multiply=0.001,
         source="pa13",
     ),
     KPIDefinition(
@@ -238,14 +240,14 @@ KPI_5G: list[KPIDefinition] = [
         higher_is_better=True,
         source="day",
     ),
-    KPIDefinition(
-        name="5G Cell Accessibility",
-        formula_num="NR_5004B_5G_SGNB_ADDITION_PREPARATION_SUCCESS_RATIO_NUM",
-        formula_denum="NR_5004B_5G_SGNB_ADDITION_PREPARATION_SUCCESS_RATIO_DENUM",
-        threshold=99.0,
-        higher_is_better=True,
-        source="day",
-    ),
+    # KPIDefinition(
+    #     name="5G Cell Accessibility",
+    #     formula_num="NR_5004B_5G_SGNB_ADDITION_PREPARATION_SUCCESS_RATIO_NUM",
+    #     formula_denum="NR_5004B_5G_SGNB_ADDITION_PREPARATION_SUCCESS_RATIO_DENUM",
+    #     threshold=99.0,
+    #     higher_is_better=True,
+    #     source="day",
+    # ),
 ]
 
 # ── 5G Traffic KPI ────────────────────────────────────────────────────────────
@@ -255,19 +257,18 @@ KPI_5G_TRAFFIC = {
     "source": "pa13",
 }
 
-# ── 5G User KPI ───────────────────────────────────────────────────────────────
 KPI_5G_USER = {
-    "col": "NR_5124A_5G_AVERAGE_NUMBER_OF_NSA_USERS",
-    "source": "day",
+    "num_col": "5G_AVG_EN_DC_USER_NUM",
+    "denum_col": "5G_AVG_EN_DC_USER_DENUM",
+    "source": "pa13",
 }
-
 # ── 4G KPI Definitions ────────────────────────────────────────────────────────
 KPI_4G: list[KPIDefinition] = [
     KPIDefinition(
         name="Availability",
         formula_num="CELL_AVAILIBILITY_NUM",
         formula_denum="CELL_AVAILIBILITY_DENUM",
-        threshold=None,
+        threshold=98.5,
         higher_is_better=True,
         source="4g",
     ),
@@ -370,13 +371,13 @@ KPI_4G: list[KPIDefinition] = [
         source="4g",
     ),
     KPIDefinition(
-        name="EUT (DL User Thput)",
+        name="EUT",
         formula_num="EUT_NUM",
         formula_denum="EUT_DENUM",
-        threshold=None,
+        threshold=3,
         higher_is_better=True,
         unit="Mbps",
-        multiply=0.000001,
+        multiply=1.0,
         source="4g",
     ),
     KPIDefinition(

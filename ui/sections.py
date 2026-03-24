@@ -159,7 +159,6 @@ def render_5g_kpi_section(
         cols_order = ["KPI", "Unit", "Threshold", "PRE", "POST", "DELTA (%)", "STATUS"]
         summary = summary[[c for c in cols_order if c in summary.columns]]
 
-        # Pre-compute CSV to avoid page-scroll bug on download
         summary_csv = summary.to_csv(index=False).encode("utf-8")
 
         with st.expander(
@@ -187,7 +186,6 @@ def render_5g_kpi_section(
                 hide_index=True,
             )
 
-    # Charts grid — 2 columns, full date range
     n_cols = 2
     kpi_chunks = [KPI_5G[i: i + n_cols] for i in range(0, len(KPI_5G), n_cols)]
 
@@ -312,7 +310,6 @@ def render_contributor_section(
         if contribs_5g:
             contrib_5g = _pd.concat(contribs_5g, ignore_index=True)
             if not contrib_5g.empty:
-                # Sort: worst gap first within each cell
                 sort_cols = (
                     ["Site ID", "NRCELName", "Gap"]
                     if "NRCELName" in contrib_5g.columns
@@ -328,7 +325,6 @@ def render_contributor_section(
                     else "latest date"
                 )
 
-                # Pre-compute CSV before layout — avoids page-scroll on download
                 csv_5g = contrib_5g_sorted.to_csv(index=False).encode("utf-8")
 
                 hdr_c, btn_c = st.columns([6, 1])
@@ -341,7 +337,6 @@ def render_contributor_section(
                         + "Sorted by gap (most negative = worst)."
                     )
                 with btn_c:
-                    # FIX: pre-computed bytes + stable unique key
                     st.download_button(
                         label="⬇ CSV",
                         data=csv_5g,

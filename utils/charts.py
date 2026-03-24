@@ -157,7 +157,7 @@ def build_user_chart(
                 mode="lines",
                 fill="tozeroy",
                 line=dict(color=COLOR_4G, width=2.5),
-                fillcolor=f"rgba(249, 115, 22, 0.15)",  # Orange with opacity
+                fillcolor=f"rgba(249, 115, 22, 0.15)",
                 hovertemplate="<b>%{x}</b><br>4G Users: %{y:,.0f}<extra></extra>",
             )
         )

@@ -57,7 +57,7 @@ logger = logging.getLogger(__name__)
 # ── Streamlit page config ─────────────────────────────────────────────────────
 st.set_page_config(
     page_title="5G/4G KPI Dashboard",
-    page_icon="📡",
+    page_icon="🐧",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
